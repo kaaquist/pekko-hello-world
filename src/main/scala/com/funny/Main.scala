@@ -4,88 +4,34 @@ import org.apache.pekko
 import pekko.actor.typed.ActorSystem
 import pekko.actor.typed.scaladsl.Behaviors
 import pekko.http.scaladsl.Http
-import pekko.Done
 import pekko.http.scaladsl.server.Route
-import pekko.http.scaladsl.server.Directives._
-import pekko.http.scaladsl.model.StatusCodes
-// for JSON serialization/deserialization following dependency is required:
-// "org.apache.pekko" %% "pekko-http-spray-json" % "<latest version>"
-import pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import spray.json.DefaultJsonProtocol._
-import spray.json.RootJsonFormat
+
 import scala.util.{Failure, Success}
 
-
-import scala.io.StdIn
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-
 object Main {
-
-  // needed to run the route
-  implicit val system: ActorSystem[_] = ActorSystem(Behaviors.empty, "SprayExample")
-  // needed for the future map/flatmap in the end and future in fetchItem and saveOrder
-  implicit val executionContext: ExecutionContext = system.executionContext
-
-  var orders: List[Item] = Nil
-
-  // domain model
-  final case class Item(name: String, id: Long)
-
-  final case class Order(items: List[Item])
-
-  // formats for unmarshalling and marshalling
-  implicit val itemFormat: RootJsonFormat[Item] = jsonFormat2(Item.apply)
-  implicit val orderFormat: RootJsonFormat[Order] = jsonFormat1(Order.apply)
-
-  // (fake) async database query api
-  def fetchItem(itemId: Long): Future[Option[Item]] = Future {
-    orders.find(o => o.id == itemId)
-  }
-
-  def saveOrder(order: Order): Future[Done] = {
-    orders = order.items ::: orders
-    Future {
-      Done
+  private def startHttpServer(routes: Route)(implicit system: ActorSystem[_]): Unit = {
+    import system.executionContext
+    val futureBinding = Http().newServerAt("localhost", 9090).bind(routes)
+    futureBinding.onComplete {
+      case Success(binding) =>
+        val address = binding.localAddress
+        system.log.info("Server online at http://{}:{}/", address.getHostString, address.getPort)
+      case Failure(ex) =>
+        system.log.error("Failed to bind HTTP endpoint, terminating system", ex)
+        system.terminate()
     }
   }
 
   def main(args: Array[String]): Unit = {
-    val route: Route =
-      concat(
-        get {
-          pathPrefix("item" / LongNumber) { id =>
-            // there might be no item for a given id
-            val maybeItem: Future[Option[Item]] = fetchItem(id)
-            println(s"Trying to get Item for id: ${id}")
-            onSuccess(maybeItem) {
-              case Some(item) => complete(item)
-              case None => complete(StatusCodes.NotFound)
-            }
-          }
-        },
-        post {
-          path("create-order") {
-            entity(as[Order]) { order =>
-              val saved: Future[Done] = saveOrder(order)
-              onSuccess(saved) { _ => // we are not interested in the result value `Done` but only in the fact that it was successful
-                println("we created an order")
-                complete("order created")
-              }
-            }
-          }
-        })
+    val rootBehavior = Behaviors.setup[Nothing] { context =>
+      val userRegistryActor = context.spawn(OrderRegistry(), "UserRegistryActor")
+      context.watch(userRegistryActor)
 
-    val bindingFuture = Http().newServerAt("0.0.0.0", 8080).bind(route)
-    bindingFuture.onComplete {
-      case Success(binding) =>
-        val address = binding.localAddress
-        println(s"Server online at http://${address.getHostString}:${address.getPort}/")
-      case Failure(ex) =>
-        println("Failed to bind HTTP endpoint, terminating system", ex)
-        system.terminate()
+      val routes = new OrderRoutes(userRegistryActor)(context.system)
+      startHttpServer(routes.orderRoutes)(context.system)
+
+      Behaviors.empty
     }
-
+    val system = ActorSystem[Nothing](rootBehavior, "HelloPekkoHttpServer")
   }
 }
