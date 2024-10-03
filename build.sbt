@@ -6,17 +6,19 @@ ThisBuild / scalaVersion := versions.scalaVersion
 
 
 lazy val versions = new {
-  val scalaTest = "3.2.15"
+  val scalaTest = "3.2.19"
   val scalaVersion = "2.13.11"
-  val pekkoVersion = "1.0.1"
-  val pekkoHttpVersion = "1.0.0"
+  val pekkoVersion = "1.0.3"
+  val pekkoHttpVersion = "1.1.0"
 }
+
+fork := true
 
 lazy val root = (project in file("."))
   .settings(
     commonSettings,
     organization := "com.funny",
-    name := "tapir-pekko-hello-world",
+    name := "Pekko Hello World",
     Compile / run / mainClass := Some(s"${organization.value}.Main"),
   )
 
@@ -24,11 +26,14 @@ lazy val root = (project in file("."))
 val commonSettings = Seq (
   libraryDependencies ++= {
     Seq(
-      "org.scalatest" %% "scalatest" % versions.scalaTest % "test",
-      "com.softwaremill.sttp.tapir" %% "tapir-pekko-http-server" % "1.7.3",
-      "org.apache.pekko" %% "pekko-actor-typed" % versions.pekkoVersion,
-      "org.apache.pekko" %% "pekko-http" % versions.pekkoHttpVersion,
-      "org.apache.pekko" %% "pekko-http-spray-json" % versions.pekkoHttpVersion,
+      "org.apache.pekko"    %%  "pekko-http"                 % versions.pekkoHttpVersion,
+      "org.apache.pekko"    %%  "pekko-http-spray-json"      % versions.pekkoHttpVersion,
+      "org.apache.pekko"    %%  "pekko-actor-typed"          % versions.pekkoVersion,
+      "org.apache.pekko"    %%  "pekko-stream"               % versions.pekkoVersion,
+      "ch.qos.logback"      %   "logback-classic"            % "1.2.13",
+      "org.scalatest"       %%  "scalatest"                  % versions.scalaTest          % Test,
+      "org.apache.pekko"    %%  "pekko-http-testkit"         % versions.pekkoHttpVersion   % Test,
+      "org.apache.pekko"    %%  "pekko-actor-testkit-typed"  % versions.pekkoHttpVersion   % Test,
     )
   },
   scalacOptions ++= Seq("-Ymacro-annotations", "-Xfatal-warnings", "-deprecation", "-unchecked", "-encoding", "utf8"),
