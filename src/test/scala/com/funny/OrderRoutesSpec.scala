@@ -1,6 +1,5 @@
 package com.funny
 
-import com.funny.Main.Item
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.http.scaladsl.marshalling.Marshal
@@ -20,12 +19,12 @@ class OrderRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with S
   lazy val routes = new OrderRoutes(orderRegistry).orderRoutes
 
   // use the json formats to marshal and unmarshall objects in the test
-  import pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import JsonFormats._
   //#set-up
 
   //#actual-test
-  "UserRoutes" should {
+  "OrderRoutes" should {
     "return no items if no present (GET /items)" in {
       val request = HttpRequest(uri = "/items")
 
