@@ -60,9 +60,9 @@ class OrderRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with S
     }
     //#testing-post
 
-    "be able to remove users (DELETE /users)" in {
+    "be able to remove items (DELETE /items)" in {
       // user the RequestBuilding DSL provided by ScalatestRouteSpec:
-      val request = Delete(uri = "/orders/Kapi")
+      val request = Delete(uri = "/items/Bread")
 
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)
@@ -71,7 +71,7 @@ class OrderRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with S
         contentType should ===(ContentTypes.`application/json`)
 
         // and no entries should be in the list:
-        entityAs[String] should ===("""{"description":"Item Kapi deleted."}""")
+        entityAs[String] should ===("""{"description":"Item Bread deleted."}""")
       }
     }
     //#actual-test

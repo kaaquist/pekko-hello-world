@@ -24,13 +24,13 @@ object OrderRegistry {
         replyTo ! Order(items.toList)
         Behaviors.same
       case CreateItem(item, replyTo) =>
-        replyTo ! ActionPerformed(s"Item \n ${item.name} created.")
+        replyTo ! ActionPerformed(s"Item ${item.name} created.")
         registry(items + item)
       case GetItem(name, replyTo) =>
         replyTo ! GetItemResponse(items.find(_.name == name))
         Behaviors.same
       case DeleteItem(name, replyTo) =>
-        replyTo ! ActionPerformed(s"Item \n $name deleted.")
+        replyTo ! ActionPerformed(s"Item $name deleted.")
         registry(items.filterNot(_.name == name))
     }
 }

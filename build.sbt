@@ -9,7 +9,7 @@ lazy val versions = new {
   val scalaTest = "3.2.19"
   val scalaVersion = "2.13.11"
   val pekkoVersion = "1.0.3"
-  val pekkoHttpVersion = "1.1.0"
+  val pekkoHttpVersion = "1.0.1"
 }
 
 fork := true
@@ -33,7 +33,7 @@ val commonSettings = Seq (
       "ch.qos.logback"      %   "logback-classic"            % "1.2.13",
       "org.scalatest"       %%  "scalatest"                  % versions.scalaTest          % Test,
       "org.apache.pekko"    %%  "pekko-http-testkit"         % versions.pekkoHttpVersion   % Test,
-      "org.apache.pekko"    %%  "pekko-actor-testkit-typed"  % versions.pekkoHttpVersion   % Test,
+      "org.apache.pekko"    %%  "pekko-actor-testkit-typed"  % versions.pekkoVersion       % Test,
     )
   },
   scalacOptions ++= Seq("-Ymacro-annotations", "-Xfatal-warnings", "-deprecation", "-unchecked", "-encoding", "utf8"),
