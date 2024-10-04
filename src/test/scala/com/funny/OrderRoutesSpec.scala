@@ -23,7 +23,6 @@ class OrderRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with S
   import JsonFormats._
   //#set-up
 
-  //#actual-test
   "OrderRoutes" should {
     "return no items if no present (GET /items)" in {
       val request = HttpRequest(uri = "/items")
@@ -31,54 +30,37 @@ class OrderRoutesSpec extends AnyWordSpec with Matchers with ScalaFutures with S
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)
 
-        // we expect the response to be json:
         contentType should ===(ContentTypes.`application/json`)
 
-        // and no entries should be in the list:
         entityAs[String] should ===("""{"items":[]}""")
       }
     }
-    //#actual-test
 
-    //#testing-post
     "be able to add items (POST /items)" in {
       val item = Item("Bread", 12)
       val itemEntity = Marshal(item).to[MessageEntity].futureValue // futureValue is from ScalaFutures
 
-      // using the RequestBuilding DSL:
       val request = Post("/items").withEntity(itemEntity)
 
       request ~> routes ~> check {
         status should ===(StatusCodes.Created)
 
-        // we expect the response to be json:
         contentType should ===(ContentTypes.`application/json`)
 
-        // and we know what message we're expecting back:
         entityAs[String] should ===("""{"description":"Item Bread created."}""")
       }
     }
-    //#testing-post
 
     "be able to remove items (DELETE /items)" in {
-      // user the RequestBuilding DSL provided by ScalatestRouteSpec:
       val request = Delete(uri = "/items/Bread")
 
       request ~> routes ~> check {
         status should ===(StatusCodes.OK)
 
-        // we expect the response to be json:
         contentType should ===(ContentTypes.`application/json`)
 
-        // and no entries should be in the list:
         entityAs[String] should ===("""{"description":"Item Bread deleted."}""")
       }
     }
-    //#actual-test
   }
-  //#actual-test
-
-  //#set-up
 }
-//#set-up
-//#user-routes-spec

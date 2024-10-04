@@ -24,10 +24,10 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val rootBehavior = Behaviors.setup[Nothing] { context =>
-      val userRegistryActor = context.spawn(OrderRegistry(), "UserRegistryActor")
-      context.watch(userRegistryActor)
+      val orderRegistryActor = context.spawn(OrderRegistry(), "RegistryActor")
+      context.watch(orderRegistryActor)
 
-      val routes = new OrderRoutes(userRegistryActor)(context.system)
+      val routes = new OrderRoutes(orderRegistryActor)(context.system)
       startHttpServer(routes.orderRoutes)(context.system)
 
       Behaviors.empty
